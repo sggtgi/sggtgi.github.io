@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <style>
+        #mapid {
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        #navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+        }
+    </style>
+
+    <script>
+        fetch(
+            "https://api.opensensemap.org/boxes/601302ff571de9001b191ac2?format=json"
+        )
+            .then((response) => response.json())
+            .then((data) => showSensebox(data));
+
+        function showSensebox(senseboxJson) {
+            console.log(senseboxJson);
+            var mysensebox = L.marker([
+                senseboxJson.currentLocation.coordinates[1],
+                senseboxJson.currentLocation.coordinates[0]
+            ]).addTo(map);
+
+            var sensor = senseboxJson.sensors[1];
+            mysensebox.bindPopup(
+                /* sensor.title +
+                ": " +
+                sensor.lastMeasurement.value +
+                " " +
+                sensor.unit +
+                "\n" +
+                "Timestamp: " +
+                sensor.lastMeasurement.createdAt */
+                JSON.stringify(senseboxJson.sensors[1])
+            );
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div id="mapid"></div>
+
+    <div id="navigation">
+        <button onclick="jumpToPosition(51.90693, 8.37853)">Gütersloh</button>
+        <button onclick="jumpToPosition(51.961563, 7.628202)">Münster</button>
+    </div>
+
+</body>
+
+<script>
+    var map = L.map('mapid').setView([51.90693, 8.37853], 14);
+
+    var osmlayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+        maxZoom: 18
+    }).addTo(map);
+
+    var Esri_WorldImagery = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+            attribution:
+                "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+            minZoom: 12,
+            maxZoom: 18
+        }
+    );
+
+    var baseLayers = {
+        OpenStreetMap: osmlayer,
+        "Esri World Imagery": Esri_WorldImagery
+    };
+
+    var layersControl = L.control
+        .layers(baseLayers, null, { collapsed: false })
+        .addTo(map);
+
+    function jumpToPosition(lat, long) {
+        map.setView([lat, long], 14);
+    }
+</script>
+
+</html>
